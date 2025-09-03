@@ -20,6 +20,6 @@ jobs:
             cd /var/www/server
             git fetch --all
             git reset --hard origin/master
-            npm i
+            pnpm install --frozen-lockfile
             pm2 restart server || pm2 start npm --name server -- run dev
             pm2 save
