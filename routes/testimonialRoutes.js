@@ -6,10 +6,16 @@ import {createTestimonial,deleteTestimonial,editTestimonial,getAllTestimonials,g
 const router = express.Router();
 const upload = multer({dest: "uploads/"});
 
-router.post("/", upload.single("file"), createTestimonial);
+// Configure multer to handle multiple files with specific field names
+const uploadFields = upload.fields([
+  { name: 'image', maxCount: 1 },
+  { name: 'backgroundImage', maxCount: 1 }
+]);
+
+router.post("/", uploadFields, createTestimonial);
 router.get("/", getAllTestimonials);
 router.get("/:id", getTestimonialById);
 router.delete("/:id", deleteTestimonial);
-router.put("/:id",  upload.single("file"), editTestimonial);
+router.put("/:id", uploadFields, editTestimonial);
 
 export default router;

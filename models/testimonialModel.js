@@ -9,6 +9,10 @@ const testimonialSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  backgroundImage: {
+    type: String,
+    required: false,
+  },
   message: {
     type: String,
     required: true,
