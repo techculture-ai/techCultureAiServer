@@ -13,6 +13,11 @@ const projectSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  portfolioImages: [
+    {
+      type: String,
+    },
+  ],
   category: {
     type: String,
     required: true,

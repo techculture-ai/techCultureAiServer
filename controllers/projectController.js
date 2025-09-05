@@ -25,6 +25,13 @@ export const createProject = async (req, res) => {
             const url = await uploadToCloudinary([file], folder);
             newProject.image = url[0].url;
         }
+
+        // Handle portfolio images upload
+        if(req.files && req.files.portfolioImages){
+            let folder = "Projects/portfolios";
+            const portfolioUrls = await uploadToCloudinary(req.files.portfolioImages, folder);
+            newProject.portfolioImages = portfolioUrls.map(img => img.url);
+        }
         const savedProject = await newProject.save();
 
         // Clean up temporary file after successful upload
@@ -85,6 +92,17 @@ export const updateProject = async (req, res) => {
             project.image = url[0].url;
         }
 
+        // Handle portfolio images upload
+        if(req.files && req.files.portfolioImages){
+            // Delete old portfolio images
+            if(project.portfolioImages && project.portfolioImages.length > 0){
+                await deleteFromCloudinary(project.portfolioImages);
+            }
+            let folder = "Projects/portfolios";
+            const portfolioUrls = await uploadToCloudinary(req.files.portfolioImages, folder);
+            project.portfolioImages = portfolioUrls.map(img => img.url);
+        }
+
         project.title = title;
         project.description = description;
         project.category = category;
@@ -116,6 +134,10 @@ export const deleteProject = async (req, res) => {
         }
         if(project.image){
             await deleteFromCloudinary(project.image);
+        }
+        // Delete portfolio images
+        if(project.portfolioImages && project.portfolioImages.length > 0){
+            await deleteFromCloudinary(project.portfolioImages);
         }
         await Project.findByIdAndDelete(req.params.id);
         res.status(200).json({message: "Project deleted successfully"});

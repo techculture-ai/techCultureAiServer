@@ -6,10 +6,16 @@ import {createProject,deleteProject,getAllProjects,getProjectById,updateProject}
 const router = express.Router();
 const upload = multer({dest: "uploads/"});
 
-router.post("/", authenticateUser, adminAuthorize, upload.single("file"), createProject);
+// Configure multer to handle multiple files
+const uploadFields = upload.fields([
+  { name: 'file', maxCount: 1 }, // Main project image
+  { name: 'portfolioImages', maxCount: 10 } // Portfolio images (max 10)
+]);
+
+router.post("/", authenticateUser, adminAuthorize, uploadFields, createProject);
 router.get("/", getAllProjects);
 router.get("/:id", getProjectById);
-router.put("/:id", authenticateUser, adminAuthorize, upload.single("file"), updateProject);
+router.put("/:id", authenticateUser, adminAuthorize, uploadFields, updateProject);
 router.delete("/:id", authenticateUser, adminAuthorize, deleteProject);
 
 export default router;
