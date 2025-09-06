@@ -94,13 +94,21 @@ export const updateProject = async (req, res) => {
 
         // Handle portfolio images upload
         if(req.files && req.files.portfolioImages){
-            // Delete old portfolio images
-            if(project.portfolioImages && project.portfolioImages.length > 0){
-                await deleteFromCloudinary(project.portfolioImages);
-            }
             let folder = "Projects/portfolios";
             const portfolioUrls = await uploadToCloudinary(req.files.portfolioImages, folder);
-            project.portfolioImages = portfolioUrls.map(img => img.url);
+            const newPortfolioUrls = portfolioUrls.map(img => img.url);
+            
+            // Merge with existing portfolio images if provided
+            let existingPortfolioUrls = [];
+            if (req.body.existingPortfolioImages) {
+                try {
+                    existingPortfolioUrls = JSON.parse(req.body.existingPortfolioImages);
+                } catch (e) {
+                    console.log("Error parsing existingPortfolioImages:", e);
+                }
+            }
+            
+            project.portfolioImages = [...existingPortfolioUrls, ...newPortfolioUrls];
         }
 
         project.title = title;

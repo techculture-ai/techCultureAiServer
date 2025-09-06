@@ -11,7 +11,7 @@ const upload = multer({ dest: "uploads/" });
 router.get("/", getSiteSetting);
 router.put("/", upload.fields([
     { name: "logo", maxCount: 1 },
-    { name: "clients", maxCount: 15 } // adjust maxCount as needed
+    { name: "clients", maxCount: 50 } // increased from 15 to 50
   ]), updateSiteSetting);
 
 export default router;

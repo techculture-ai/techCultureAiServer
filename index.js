@@ -20,6 +20,7 @@ import sliderRouter from "./routes/sliderRoutes.js"
 import customerRouter from "./routes/customerRouter.js"
 import technologyRouter from "./routes/technologiesRoutes.js"
 import cleanupRouter from "./routes/cleanupRoutes.js"
+import faqRouter from "./routes/faqRoutes.js"
 
 const app = express()
 const PORT = process.env.PORT || 5000
@@ -62,6 +63,7 @@ app.use("/api/sliders", sliderRouter);
 app.use("/api/customers", customerRouter);
 app.use("/api/technologies", technologyRouter);
 app.use("/api/cleanup", cleanupRouter);
+app.use("/api/faqs", faqRouter);
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`)

@@ -61,13 +61,21 @@ export const updateSiteSetting = async (req, res) => {
 
     // ✅ Handle clients upload
     if (req.files?.clients?.length > 0) {
-      if(siteSetting?.clients?.length > 0){
-        await deleteFromCloudinary(siteSetting.clients);
-      }
       const foldername = "siteSetting/clients";
       const uploadedClients = await uploadToCloudinary(req.files.clients, foldername);
-      const clientUrls = uploadedClients.map(file => file.url);
-      data.clients = clientUrls; // Will replace old clients
+      const newClientUrls = uploadedClients.map(file => file.url);
+      
+      // Merge with existing clients if existingClients is provided
+      let existingClientUrls = [];
+      if (req.body.existingClients) {
+        try {
+          existingClientUrls = JSON.parse(req.body.existingClients);
+        } catch (e) {
+          console.log("Error parsing existingClients:", e);
+        }
+      }
+      
+      data.clients = [...existingClientUrls, ...newClientUrls];
     }
 
     // ✅ Save or update
