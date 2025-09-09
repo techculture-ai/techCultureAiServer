@@ -50,7 +50,7 @@ const forgotPasswordEmailTemp = (name, otp)=>{
                 <div class="otp">${otp}</div>
                 <p>If you didn’t forget your password, you can safely ignore this email.</p>
                 <div class="footer">
-                    <p>&copy; 2023 TechCulture. All rights reserved.</p>
+                    <p>&copy; 2025 TechCulture. All rights reserved.</p>
                 </div>
             </div>
         </body>
