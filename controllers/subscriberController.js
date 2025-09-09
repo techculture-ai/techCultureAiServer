@@ -1,6 +1,7 @@
 import Subscriber from "../models/subscriberModel.js";
 import subscriptionConfirmationEmailTemp from "../utils/subscribeEmail.js";
 import {sendEmail} from "../config/emailService.js"
+import adminNotificationEmailTemp from "../utils/notificationEmail.js";
 
 // create subscriber
 export const createSubscriber = async (req, res) => {
@@ -56,4 +57,28 @@ export const deleteSubscriber = async (req, res) => {
         console.error("Error deleting subscriber:", error);
         return res.status(500).json({ error: "Internal server error" });
     }
+};
+
+// send notification email to all subscribers
+export const sendNotificationToSubscribers = async (req, res) => {
+    try {
+        const { subject, message } = req.body;
+        if (!subject || !message) {
+            return res.status(400).json({ message: "Subject and message are required" });
+        }
+        const subscribers = await Subscriber.find();
+        const emailPromises = subscribers.map((subscriber) =>
+            sendEmail({
+                sendTo: subscriber.email,
+                subject: subject,
+                text: "",
+                html: adminNotificationEmailTemp(subscriber.email, subject,message),
+            })
+        );
+        await Promise.all(emailPromises);
+        return res.status(200).json({ message: "Notifications sent successfully" });
+    } catch (error) {
+        console.error("Error sending notifications:", error);
+        return res.status(500).json({ error: "Internal server error" });
+    }  
 };
