@@ -10,11 +10,11 @@ export const createService = async (req, res) => {
     if(!title || !description || !features) {
       return res.status(400).json({ error: "Please fill all the fields" });
     }
-
+    const parsedFeatures = typeof features === 'string' ? JSON.parse(features) : features;
     const service = await Service.create({
       title,
       description,
-      features,
+      features: parsedFeatures,
       category,
     });
 
@@ -86,7 +86,7 @@ export const updateService = async (req, res) => {
     }  
     service.title = title || service.title;
     service.description = description || service.description;
-    service.features = features || service.features;
+    service.features = JSON.parse(features) || service.features;
     service.category = category || service.category;
     if(req.file){
         if(service.image){
