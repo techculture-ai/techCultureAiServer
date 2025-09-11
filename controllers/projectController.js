@@ -1,19 +1,19 @@
-import Project from "../models/projectModel.js";
+import { Project, Category } from "../models/projectModel.js";
 import {deleteFromCloudinary,uploadToCloudinary} from "../config/cloudinaryService.js"
 import { cleanupAfterUpload } from "../utils/cleanupTempFiles.js";
 // create
 export const createProject = async (req, res) => {
     try{
-        const {title, description, category, location, technologies, status = "ongoing"  } = req.body;
+        const {title, description, categoryId, location, technologies, status = "ongoing"  } = req.body;
 
-        if(!title || !description || !category){
+        if(!title || !description || !categoryId){
             return res.status(400).json({message: "Please fill all the fields"});
         }
         const parsedTechnologies = technologies ? JSON.parse(technologies) : [];
         const newProject = new Project({
             title,
             description,
-            category,
+            category: categoryId,
             location,
             technologies: parsedTechnologies,
             status,
@@ -75,7 +75,7 @@ export const getProjectById = async (req, res) => {
 // update project
 export const updateProject = async (req, res) => {
     try{
-        const {title, description, category, location, technologies, status = "ongoing"  } = req.body;
+        const {title, description, location, technologies, status = "ongoing"  } = req.body;
 
         const project = await Project.findById(req.params.id);
         if(!project){
@@ -113,7 +113,6 @@ export const updateProject = async (req, res) => {
 
         project.title = title;
         project.description = description;
-        project.category = category;
         project.location = location;
         project.technologies = JSON.parse(technologies);
         project.status = status;
@@ -149,6 +148,109 @@ export const deleteProject = async (req, res) => {
         }
         await Project.findByIdAndDelete(req.params.id);
         res.status(200).json({message: "Project deleted successfully"});
+    }
+    catch(err){
+        res.status(500).json({message: err.message});
+    }
+}
+
+// get projects by category
+export const getProjectsByCategory = async (req, res) => {
+    try{
+        const projects = await Project.find({category: req.params.categoryId});
+        res.status(200).json({projects});
+    }
+    catch(err){
+        res.status(500).json({message: err.message});
+    }
+}
+
+// Note: Category management can be added similarly 
+//create category 
+export const createCategory = async (req, res) => {
+    try{
+        const {name} = req.body;
+        const category = new Category({name});
+        if(req.file){
+            let folder = "Categories";
+            let file = req.file;
+            const url = await uploadToCloudinary([file], folder);
+            category.image = url[0].url;
+        }
+        await category.save();
+        res.status(201).json({message: "Category created successfully", category});
+    }
+    catch(err){
+        res.status(500).json({message: err.message});
+    }
+}
+
+// get all categories
+export const getAllCategories = async (req, res) => {
+    try{
+        const categories = await Category.find();
+        res.status(200).json({categories});
+    }
+    catch(err){
+        res.status(500).json({message: err.message});
+    }
+}
+
+// delete category
+export const deleteCategory = async (req, res) => {
+    try{
+        const category = await Category.findById(req.params.id);
+        if(!category){
+            return res.status(404).json({message: "Category not found"});
+        }
+        if(category.projects && category.projects.length > 0){
+            return res.status(400).json({message: "Cannot delete category with associated projects"});
+        }
+        if(category.image){
+            await deleteFromCloudinary(category.image);
+        }
+        await Category.findByIdAndDelete(req.params.id);
+        res.status(200).json({message: "Category deleted successfully"});
+    }
+    catch(err){
+        res.status(500).json({message: err.message});
+    }
+}
+
+// update category
+export const updateCategory = async (req, res) => {
+    try{
+        const {name} = req.body;
+        const category = await Category.findById(req.params.id);
+        if(!category){
+            return res.status(404).json({message: "Category not found"});
+        }
+        category.name = name;
+        if(req.file){
+            if(category.image){
+                await deleteFromCloudinary([category.image]);
+            }
+            let folder = "Categories";
+            let file = req.file;
+            const url = await uploadToCloudinary([file], folder);
+            category.image = url[0].url;
+        }
+        await category.save();
+        res.status(200).json({message: "Category updated successfully", category});
+    }
+    catch(err){
+        res.status(500).json({message: err.message});
+    }
+}
+
+//get category by id
+export const getCategoryById = async (req, res) => {
+    try{
+        const category = await Category.findById(req.params.id);
+        if(!category){
+            return res.status(404).json({message: "Category not found"});
+        }
+        res.status(200).json({category});
     }
     catch(err){
         res.status(500).json({message: err.message});
