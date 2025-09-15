@@ -4,7 +4,7 @@ import { cleanupAfterUpload } from "../utils/cleanupTempFiles.js";
 
 //create 
 export const createService = async (req, res) => {
-  const { title, description, features = [], category="core" } = req.body;
+  const { title, description, features = [], category="main", order = 0 } = req.body;
   try {
 
     if(!title || !description || !features) {
@@ -16,6 +16,7 @@ export const createService = async (req, res) => {
       description,
       features: parsedFeatures,
       category,
+      order: parseInt(order) || 0,
     });
 
     if(req.file){
@@ -26,7 +27,7 @@ export const createService = async (req, res) => {
 
     await service.save();
 
-    // Clean up temporary file after successful upload
+    
     await cleanupAfterUpload(req.file);
 
     return res.status(201).json({
@@ -35,7 +36,7 @@ export const createService = async (req, res) => {
     })
     
   } catch (error) {
-    // Clean up temporary file even if there was an error
+    
     await cleanupAfterUpload(req.file);
     
     res.status(400).json({ error: error.message });
@@ -45,13 +46,12 @@ export const createService = async (req, res) => {
 // get all
 export const getAllServices = async (req, res) => {
   try {
-    // Get pagination parameters from query string
+    
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 8; // Default to 8 services per page
+    const limit = parseInt(req.query.limit) || 8; 
     const skip = (page - 1) * limit;
-    const category = req.query.category; // Get category filter
-
-    // Build filter object
+    const category = req.query.category; 
+    
     const filter = {};
     if (category) {
       filter.category = category;
@@ -62,7 +62,7 @@ export const getAllServices = async (req, res) => {
     
     // Get paginated services
     const services = await Service.find(filter)
-      .sort({ createdAt: -1 }) // Sort by newest first
+      .sort({ order: 1, createdAt: -1 }) // Sort by order first (ascending), then by newest
       .skip(skip)
       .limit(limit);
 
@@ -107,7 +107,7 @@ export const getServiceById = async (req, res) => {
 // update by id
 export const updateService = async (req, res) => {
   const { id } = req.params;
-  const { title, description, features, category } = req.body;
+  const { title, description, features, category, order } = req.body;
 
   try {
     const service = await Service.findById(id);
@@ -118,6 +118,7 @@ export const updateService = async (req, res) => {
     service.description = description || service.description;
     service.features = JSON.parse(features) || service.features;
     service.category = category || service.category;
+    service.order = order !== undefined ? parseInt(order) : service.order;
     if(req.file){
         if(service.image){
             await deleteFromCloudinary(service.image);

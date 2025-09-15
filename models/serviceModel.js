@@ -15,6 +15,10 @@ const serviceSchema = new mongoose.Schema({
     type: String,
     default: "main",
   },
+  order: {
+        type: Number,
+        default: 0
+    },
   createdAt: {
     type: Date,
     default: Date.now,
