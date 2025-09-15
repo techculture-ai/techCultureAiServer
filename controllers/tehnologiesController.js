@@ -39,7 +39,7 @@ export const createTechnology = async (req, res) => {
 // READ - Get all technology categories
 export const getAllTechnologies = async (req, res) => {
   try {
-    const technologies = await Technology.find().sort({ createdAt: -1 });
+    const technologies = await Technology.find();
 
     res.status(200).json({
       success: true,

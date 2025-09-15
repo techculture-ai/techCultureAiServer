@@ -45,13 +45,43 @@ export const createService = async (req, res) => {
 // get all
 export const getAllServices = async (req, res) => {
   try {
-    const services = await Service.find();
-    return res.status(200).json(
-      {
-        message: "Services fetched successfully",
-        services,
+    // Get pagination parameters from query string
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 8; // Default to 8 services per page
+    const skip = (page - 1) * limit;
+    const category = req.query.category; // Get category filter
+
+    // Build filter object
+    const filter = {};
+    if (category) {
+      filter.category = category;
+    }
+
+    // Get total count for pagination info
+    const totalServices = await Service.countDocuments(filter);
+    
+    // Get paginated services
+    const services = await Service.find(filter)
+      .sort({ createdAt: -1 }) // Sort by newest first
+      .skip(skip)
+      .limit(limit);
+
+    // Calculate pagination info
+    const totalPages = Math.ceil(totalServices / limit);
+    const hasMore = page < totalPages;
+
+    return res.status(200).json({
+      message: "Services fetched successfully",
+      services,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalServices,
+        hasMore,
+        servicesPerPage: limit,
+        category: category || 'all'
       }
-    );
+    });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }

@@ -2,8 +2,8 @@ import Enquiry from "../models/enquiryModel.js";
 
 export const createEnquiryController = async (req, res) => {
     try {
-        const { name, email, phone, message } = req.body;
-        const enquiry = new Enquiry({ name, email, phone, message });
+        const { name, email, phone, message, projectName="General" } = req.body;
+        const enquiry = new Enquiry({ name, email, phone, message, projectName });
         await enquiry.save();
         return res.status(201).json({
             success: true,

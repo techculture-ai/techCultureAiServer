@@ -13,7 +13,7 @@ const serviceSchema = new mongoose.Schema({
   features: [{ type: String }],
   category: {
     type: String,
-    default: "core",
+    default: "main",
   },
   createdAt: {
     type: Date,

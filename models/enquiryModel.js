@@ -5,6 +5,11 @@ const enquirySchema = mongoose.Schema({
   email: String,
   phone: String,
   message: String,
+  projectName: {
+    type: String,
+    required: true,
+    default: "General",
+  },
   createdAt: {
     type: Date,
     default: new Date(),
