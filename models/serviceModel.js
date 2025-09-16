@@ -19,10 +19,15 @@ const serviceSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  slug: {
+    type: String,
+    required: true,
+    unique: true,
+  },
   order: {
-        type: Number,
-        default: 0
-    },
+    type: Number,
+    default: 0,
+  },
   createdAt: {
     type: Date,
     default: Date.now,

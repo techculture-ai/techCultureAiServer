@@ -2,6 +2,15 @@ import Service from "../models/serviceModel.js";
 import {deleteFromCloudinary,uploadToCloudinary} from "../config/cloudinaryService.js"
 import { cleanupAfterUpload } from "../utils/cleanupTempFiles.js";
 
+function slugify(title) {
+  return title
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, "-") // spaces to hyphen
+    .replace(/[^\w\-]+/g, "") // remove non-word chars
+    .replace(/\-\-+/g, "-"); // collapse multiple hyphens
+}
+
 //create 
 export const createService = async (req, res) => {
   const { title, description, features = [], category="main", order = 0, showOnHomePage = false } = req.body;
@@ -11,13 +20,20 @@ export const createService = async (req, res) => {
       return res.status(400).json({ error: "Please fill all the fields" });
     }
     const parsedFeatures = typeof features === 'string' ? JSON.parse(features) : features;
+
+    const slug = slugify(title)
+    const existingService = await Service.findOne({ slug });
+    if (existingService) {
+      return res.status(400).json({ message: "A service with this title already exists. Please choose a different title." });
+    }
     const service = await Service.create({
       title,
       description,
       features: parsedFeatures,
       category,
       order: parseInt(order) || 0,
-      showOnHomePage
+      showOnHomePage,
+      slug
     });
 
     if(req.file){
@@ -27,8 +43,6 @@ export const createService = async (req, res) => {
     }
 
     await service.save();
-
-    
     await cleanupAfterUpload(req.file);
 
     return res.status(201).json({
@@ -109,6 +123,24 @@ export const getServiceById = async (req, res) => {
   }
 };
 
+// get by slug
+export const getServiceBySlug = async (req, res) => {
+  const { slug } = req.params;
+  try {
+    const service = await Service.findOne({ slug });
+    if (!service) {
+      return res.status(404).json({ error: "Service not found" });
+    }
+    return res.status(200).json({
+      message: "Service fetched successfully",
+      service,
+    });
+  }
+  catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
 // update by id
 export const updateService = async (req, res) => {
   const { id } = req.params;
@@ -125,6 +157,13 @@ export const updateService = async (req, res) => {
     service.category = category || service.category;
     service.order = order !== undefined ? parseInt(order) : service.order;
     service.showOnHomePage = showOnHomePage !== undefined ? showOnHomePage : service.showOnHomePage;
+    service.slug = title ? slugify(title) : service.slug;
+    
+    const slugConflict = await Service.findOne({ slug: service.slug, _id: { $ne: service._id } });
+    if (slugConflict) {
+      return res.status(400).json({ message: "A service with this title already exists. Please choose a different title." });
+    }
+
     if(req.file){
         if(service.image){
             await deleteFromCloudinary(service.image);

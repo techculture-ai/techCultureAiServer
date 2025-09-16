@@ -11,6 +11,11 @@ const categorySchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  slug:{
+    type: String,
+    required: true,
+    unique: true,
+  },
   createdAt:{
     type: Date,
     default: Date.now,
@@ -42,7 +47,7 @@ const projectSchema = new mongoose.Schema({
       type: String,
     },
   ],
-  category:{
+  category: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Category",
     required: true,
@@ -55,6 +60,11 @@ const projectSchema = new mongoose.Schema({
       type: String,
     },
   ],
+  slug: {
+    type: String,
+    required: true,
+    unique: true,
+  },
   status: {
     type: String,
     enum: ["ongoing", "completed"],

@@ -2,6 +2,16 @@ import { Project, Category } from "../models/projectModel.js";
 import {deleteFromCloudinary,uploadToCloudinary} from "../config/cloudinaryService.js"
 import { cleanupAfterUpload } from "../utils/cleanupTempFiles.js";
 // create
+
+function slugify(title) {
+  return title
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, "-") // spaces to hyphen
+    .replace(/[^\w\-]+/g, "") // remove non-word chars
+    .replace(/\-\-+/g, "-"); // collapse multiple hyphens
+}
+
 export const createProject = async (req, res) => {
     try{
         const {title, description, categoryId, location, technologies, status = "ongoing"  } = req.body;
@@ -10,6 +20,11 @@ export const createProject = async (req, res) => {
             return res.status(400).json({message: "Please fill all the fields"});
         }
         const parsedTechnologies = technologies ? JSON.parse(technologies) : [];
+        const slug = slugify(title);
+        const existingProject = await Project.findOne({ slug });
+        if (existingProject) {
+          return res.status(400).json({ message: "A project with this title already exists. Please choose a different title." });
+        }
         const newProject = new Project({
             title,
             description,
@@ -17,6 +32,7 @@ export const createProject = async (req, res) => {
             location,
             technologies: parsedTechnologies,
             status,
+            slug
         });
 
         if (req.files.file) {
@@ -72,6 +88,21 @@ export const getProjectById = async (req, res) => {
     }
 }
 
+// get project by slug
+export const getProjectBySlug = async (req, res) => {
+    try{
+        const { slug } = req.params;
+        const project = await Project.findOne({ slug });
+        if(!project){
+            return res.status(404).json({message: "Project not found"});
+        }
+        res.status(200).json({project});
+    }
+    catch(err){
+        res.status(500).json({message: err.message});
+    }
+}
+
 // update project
 export const updateProject = async (req, res) => {
     try{
@@ -116,6 +147,13 @@ export const updateProject = async (req, res) => {
         project.location = location;
         project.technologies = JSON.parse(technologies);
         project.status = status;
+        project.slug = slugify(title);
+
+        // Check for slug uniqueness
+        const slugConflict = await Project.findOne({ slug: project.slug, _id: { $ne: project._id } });
+        if (slugConflict) {
+          return res.status(400).json({ message: "A project with this title already exists. Please choose a different title." });
+        }
 
         const updatedProject = await project.save();
 
@@ -165,12 +203,34 @@ export const getProjectsByCategory = async (req, res) => {
     }
 }
 
+//get project by category slug 
+export const getProjectsByCategorySlug = async (req, res) => {
+    try{
+        const { slug } = req.params;
+        const category = await Category.findOne({ slug });
+        if(!category){
+            return res.status(404).json({message: "Category not found"});
+        }
+        const projects = await Project.find({ category: category._id });
+        res.status(200).json({projects});
+    }
+    catch(err){
+        res.status(500).json({message: err.message});
+    }
+}
+
 // Note: Category management can be added similarly 
 //create category 
 export const createCategory = async (req, res) => {
     try{
         const {name} = req.body;
         const category = new Category({name});
+        const slug = slugify(name);
+        const existingCategory = await Category.findOne({ slug });
+        if (existingCategory) {
+            return res.status(400).json({ message: "A category with this name already exists. Please choose a different name." });
+        }
+        category.slug = slug;
         if(req.file){
             let folder = "Categories";
             let file = req.file;
@@ -226,6 +286,12 @@ export const updateCategory = async (req, res) => {
             return res.status(404).json({message: "Category not found"});
         }
         category.name = name;
+        category.slug = slugify(name);
+        const slugConflict = await Category
+            .findOne({ slug: category.slug, _id: { $ne: category._id } });
+        if (slugConflict) {
+            return res.status(400).json({ message: "A category with this name already exists. Please choose a different name." });
+        }
         if(req.file){
             if(category.image){
                 await deleteFromCloudinary([category.image]);
