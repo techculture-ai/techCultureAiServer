@@ -4,7 +4,7 @@ import { cleanupAfterUpload } from "../utils/cleanupTempFiles.js";
 
 //create 
 export const createService = async (req, res) => {
-  const { title, description, features = [], category="main", order = 0 } = req.body;
+  const { title, description, features = [], category="main", order = 0, showOnHomePage = false } = req.body;
   try {
 
     if(!title || !description || !features) {
@@ -17,6 +17,7 @@ export const createService = async (req, res) => {
       features: parsedFeatures,
       category,
       order: parseInt(order) || 0,
+      showOnHomePage
     });
 
     if(req.file){
@@ -51,10 +52,14 @@ export const getAllServices = async (req, res) => {
     const limit = parseInt(req.query.limit) || 8; 
     const skip = (page - 1) * limit;
     const category = req.query.category; 
+    const showOnHomePage = req.query.showOnHomePage;
     
     const filter = {};
     if (category) {
       filter.category = category;
+    }
+    if (showOnHomePage) {
+      filter.showOnHomePage = showOnHomePage === "true";
     }
 
     // Get total count for pagination info
@@ -62,7 +67,7 @@ export const getAllServices = async (req, res) => {
     
     // Get paginated services
     const services = await Service.find(filter)
-      .sort({ order: 1, createdAt: -1 }) // Sort by order first (ascending), then by newest
+      .sort({ order: 1, updatedAt: -1 }) // Sort by updatedAt first (descending), then by order (ascending)
       .skip(skip)
       .limit(limit);
 
@@ -107,7 +112,7 @@ export const getServiceById = async (req, res) => {
 // update by id
 export const updateService = async (req, res) => {
   const { id } = req.params;
-  const { title, description, features, category, order } = req.body;
+  const { title, description, features, category, order, showOnHomePage } = req.body;
 
   try {
     const service = await Service.findById(id);
@@ -119,6 +124,7 @@ export const updateService = async (req, res) => {
     service.features = JSON.parse(features) || service.features;
     service.category = category || service.category;
     service.order = order !== undefined ? parseInt(order) : service.order;
+    service.showOnHomePage = showOnHomePage !== undefined ? showOnHomePage : service.showOnHomePage;
     if(req.file){
         if(service.image){
             await deleteFromCloudinary(service.image);

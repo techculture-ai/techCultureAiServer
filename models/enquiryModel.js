@@ -5,6 +5,8 @@ const enquirySchema = mongoose.Schema({
   email: String,
   phone: String,
   message: String,
+  ip: String,
+  location: String,
   projectName: {
     type: String,
     required: true,

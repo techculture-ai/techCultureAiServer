@@ -1,22 +1,51 @@
 import Enquiry from "../models/enquiryModel.js";
 
 export const createEnquiryController = async (req, res) => {
-    try {
-        const { name, email, phone, message, projectName="General" } = req.body;
-        const enquiry = new Enquiry({ name, email, phone, message, projectName });
-        await enquiry.save();
-        return res.status(201).json({
-            success: true,
-            message: "Enquiry created successfully",
-            enquiry
-        });
-    } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: error.message
-        });
+  try {
+    const {
+      name,
+      email,
+      phone,
+      message = "",
+      projectName = "General",
+    } = req.body;
+
+    const ip =
+      req.headers["x-forwarded-for"]?.split(",").shift() ||
+      req.socket?.remoteAddress ||
+      null;
+
+    let locationData = null;
+    if (ip) {
+      const response = await fetch(`http://ip-api.com/json/${ip}`);
+      locationData = await response.json();
     }
-}
+
+    const enquiry = new Enquiry({
+      name,
+      email,
+      phone,
+      message,
+      projectName,
+      ip,
+      location: locationData.city || locationData.regionName || "Unknown",
+    });
+
+    await enquiry.save();
+
+    return res.status(201).json({
+      success: true,
+      message: "Enquiry created successfully",
+      enquiry,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 
 export const getAllEnquiriesController = async (req, res) => {
     try {
