@@ -38,7 +38,11 @@ export const createFAQ = async (req, res) => {
 // Get all FAQs (for admin)
 export const getAllFAQs = async (req, res) => {
     try {
-        const faqs = await FAQ.find().sort({ category: 1, order: 1, createdAt: -1 });
+        const faqs = await FAQ.find().sort({
+          category: 1,
+          order: 1,
+          updatedAt: -1,
+        });
         res.status(200).json({
             success: true,
             data: faqs
@@ -55,7 +59,11 @@ export const getAllFAQs = async (req, res) => {
 // Get active FAQs (for public)
 export const getActiveFAQs = async (req, res) => {
     try {
-        const faqs = await FAQ.find({ isActive: true }).sort({ category: 1, order: 1, createdAt: -1 });
+        const faqs = await FAQ.find({ isActive: true }).sort({
+          category: 1,
+          order: 1,
+          updatedAt: -1,
+        });
         res.status(200).json({
             success: true,
             data: faqs
@@ -157,10 +165,10 @@ export const deleteFAQ = async (req, res) => {
 export const getFAQsByCategory = async (req, res) => {
     try {
         const { category } = req.params;
-        const faqs = await FAQ.find({ 
-            category: category, 
-            isActive: true 
-        }).sort({ order: 1, createdAt: -1 });
+        const faqs = await FAQ.find({
+          category: category,
+          isActive: true,
+        }).sort({ order: 1, updatedAt: -1 });
         
         res.status(200).json({
             success: true,
