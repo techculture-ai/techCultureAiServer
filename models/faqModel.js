@@ -22,7 +22,7 @@ const faqSchema = new mongoose.Schema({
     },
     order: {
         type: Number,
-        default: 1
+        autoIncrement: true,
     },
     createdAt:{
         type: Date,

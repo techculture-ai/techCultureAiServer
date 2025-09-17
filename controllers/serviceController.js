@@ -13,7 +13,7 @@ function slugify(title) {
 
 //create 
 export const createService = async (req, res) => {
-  const { title, description, features = [], category="main", order = 0, showOnHomePage = false } = req.body;
+  const { title, description, features = [], category="main", order = 1, showOnHomePage = false } = req.body;
   try {
 
     if(!title || !description || !features) {
@@ -26,14 +26,20 @@ export const createService = async (req, res) => {
     if (existingService) {
       return res.status(400).json({ message: "A service with this title already exists. Please choose a different title." });
     }
+
+    const count = await Service.countDocuments({category});
+
+    let newOrder = count + 1;
+
+
     const service = await Service.create({
       title,
       description,
       features: parsedFeatures,
       category,
-      order: parseInt(order) || 0,
+      order: parseInt(newOrder) || 1,
       showOnHomePage,
-      slug
+      slug,
     });
 
     if(req.file){

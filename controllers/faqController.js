@@ -3,7 +3,7 @@ import FAQ from "../models/faqModel.js";
 // Create new FAQ
 export const createFAQ = async (req, res) => {
     try {
-        const { question, answer, category, isActive, order } = req.body;
+        const { question, answer, category, isActive, order=1 } = req.body;
 
         if (!question || !answer) {
             return res.status(400).json({
