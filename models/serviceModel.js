@@ -40,3 +40,10 @@ const serviceSchema = new mongoose.Schema({
 
 const Service = mongoose.model("Service", serviceSchema);
 export default Service;
+
+// indexing on slug for faster queries
+serviceSchema.index({ slug: 1 });
+// indexing on category for faster queries
+serviceSchema.index({ category: 1 });
+serviceSchema.index({ order: 1 });
+serviceSchema.index({ updatedAt: 1 });

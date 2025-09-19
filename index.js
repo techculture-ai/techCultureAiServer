@@ -42,7 +42,10 @@ app.use(
   })
 );
 app.use(express.json())
-app.use(express.urlencoded({ extended: true }))
+app.use(express.json({ limit: "50mb" }));
+
+// For URL-encoded payloads
+app.use(express.urlencoded({ limit: "50mb", extended: true }));
 connectDB()
 
 app.get("/", (req, res) => {

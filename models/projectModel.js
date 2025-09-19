@@ -78,3 +78,10 @@ const projectSchema = new mongoose.Schema({
 
 const Project = mongoose.model("Project", projectSchema);
 export { Project, Category };
+
+//indexing on slug for faster queries
+projectSchema.index({ slug: 1 });
+projectSchema.index({ category: 1 });
+projectSchema.index({ updatedAt: -1 });
+
+categorySchema.index({ slug: 1 });  
