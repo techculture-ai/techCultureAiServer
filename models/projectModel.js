@@ -1,4 +1,3 @@
-
 import mongoose from "mongoose";
 
 const categorySchema = new mongoose.Schema({
@@ -26,8 +25,8 @@ const categorySchema = new mongoose.Schema({
   },
 });
 
-const Category = mongoose.model("Category", categorySchema);
 
+const Category = mongoose.model("Category", categorySchema);
 
 const projectSchema = new mongoose.Schema({
   title: {
@@ -76,12 +75,8 @@ const projectSchema = new mongoose.Schema({
   },
 });
 
-const Project = mongoose.model("Project", projectSchema);
-export { Project, Category };
-
-//indexing on slug for faster queries
-projectSchema.index({ slug: 1 });
 projectSchema.index({ category: 1 });
 projectSchema.index({ updatedAt: -1 });
 
-categorySchema.index({ slug: 1 });  
+const Project = mongoose.model("Project", projectSchema);
+export { Project, Category };
