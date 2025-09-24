@@ -1,7 +1,6 @@
 import { deleteFromCloudinary, uploadToCloudinary } from "../config/cloudinaryService.js";
 import Testimonial from "../models/testimonialModel.js";
 
-
 // create testimonial
 export const createTestimonial = async (req, res) => {
     try {
@@ -106,29 +105,24 @@ export const deleteTestimonial = async (req, res) => {
     }
 }
 
-
 //edit testimonial
 export const editTestimonial = async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, message, title } = req.body;
-
-        console.log("Request Body:", req.body);
-        console.log("Request Files:", req.files);
-        console.log("Request Files Keys:", req.files ? Object.keys(req.files) : 'No files');
+        const { name, message, title, removeBackgroundImage } = req.body;
 
         const testimonial = await Testimonial.findById(id);
         if (!testimonial) {
             return res.status(404).json({ message: "Testimonial data not found" });
         }
 
-        console.log("Current testimonial before update:", {
-            name: testimonial.name,
-            title: testimonial.title,
-            message: testimonial.message,
-            image: testimonial.image,
-            backgroundImage: testimonial.backgroundImage
-        });
+        // Handle background image removal
+        if (removeBackgroundImage === 'true') {
+            if (testimonial.backgroundImage) {
+                await deleteFromCloudinary(testimonial.backgroundImage);
+                testimonial.backgroundImage = undefined;
+            }
+        }
 
         // Handle multiple file uploads
         if (req.files && Object.keys(req.files).length > 0) {
@@ -137,24 +131,20 @@ export const editTestimonial = async (req, res) => {
             
             // Handle image upload
             if (req.files.image && req.files.image.length > 0) {
-                console.log("Processing image upload...");
                 const imageResult = await uploadToCloudinary(req.files.image, foldername);
                 if (testimonial.image) {
                     await deleteFromCloudinary(testimonial.image);
                 }
                 testimonial.image = imageResult[0].url;
-                console.log("Image uploaded:", imageResult[0].url);
             }
             
-            // Handle background image upload
-            if (req.files.backgroundImage && req.files.backgroundImage.length > 0) {
-                console.log("Processing background image upload...");
+            // Handle background image upload (only if not removing)
+            if (req.files.backgroundImage && req.files.backgroundImage.length > 0 && removeBackgroundImage !== 'true') {
                 const backgroundResult = await uploadToCloudinary(req.files.backgroundImage, foldername);
                 if (testimonial.backgroundImage) {
                     await deleteFromCloudinary(testimonial.backgroundImage);
                 }
                 testimonial.backgroundImage = backgroundResult[0].url;
-                console.log("Background image uploaded:", backgroundResult[0].url);
             }
         }
 
