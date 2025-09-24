@@ -11,7 +11,6 @@ const contactSchema = new mongoose.Schema({
   },
   message: {
     type: String,
-    required: true,
   },
   phone: {
     type: String,
@@ -19,7 +18,6 @@ const contactSchema = new mongoose.Schema({
   },
   company: {
     type: String,
-    required: true,
   },
   service: {
     type: String,

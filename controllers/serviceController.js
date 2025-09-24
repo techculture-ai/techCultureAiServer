@@ -13,7 +13,7 @@ function slugify(title) {
 
 //create 
 export const createService = async (req, res) => {
-  const { title, description, features = [], category="main", order = 1, showOnHomePage = false } = req.body;
+  const { title, description, features = [], category="main", order = 1, showOnHomePage = false, showOnHeader = false } = req.body;
   try {
 
     if(!title || !description || !features) {
@@ -42,14 +42,20 @@ export const createService = async (req, res) => {
       slug,
     });
 
-    if(req.file){
-        let folder = "services";
-        const image = await uploadToCloudinary([req.file], folder);
-        service.image = image[0].url;
+    if (req.files.file) {
+      let folder = "services";
+      const image = await uploadToCloudinary(req.files.file, folder);
+      service.image = image[0].url;
+    }
+
+    if (req.files.sliderImage) {
+      let folder = "services/slider";
+      const sliderImages = await uploadToCloudinary(req.files.sliderImage, folder);
+      service.sliderImage = sliderImages.map(img => img.url);
     }
 
     await service.save();
-    await cleanupAfterUpload(req.file);
+    await cleanupAfterUpload(req.files);
 
     return res.status(201).json({
         message : "Service created successfully",
@@ -73,6 +79,7 @@ export const getAllServices = async (req, res) => {
     const skip = (page - 1) * limit;
     const category = req.query.category; 
     const showOnHomePage = req.query.showOnHomePage;
+    const showOnHeader = req.query.showOnHeader;
     
     const filter = {};
     if (category) {
@@ -80,6 +87,9 @@ export const getAllServices = async (req, res) => {
     }
     if (showOnHomePage) {
       filter.showOnHomePage = showOnHomePage === "true";
+    }
+    if (showOnHeader) {
+      filter.showOnHeader = showOnHeader === "true";
     }
 
     // Get total count for pagination info
@@ -150,7 +160,7 @@ export const getServiceBySlug = async (req, res) => {
 // update by id
 export const updateService = async (req, res) => {
   const { id } = req.params;
-  const { title, description, features, category, order, showOnHomePage } = req.body;
+  const { title, description, features, category, order, showOnHomePage, showOnHeader } = req.body;
 
   try {
     const service = await Service.findById(id);
@@ -163,6 +173,7 @@ export const updateService = async (req, res) => {
     service.category = category || service.category;
     service.order = order !== undefined ? parseInt(order) : service.order;
     service.showOnHomePage = showOnHomePage !== undefined ? showOnHomePage : service.showOnHomePage;
+    service.showOnHeader = showOnHeader !== undefined ? showOnHeader : service.showOnHeader;
     service.slug = title ? slugify(title) : service.slug;
     
     const slugConflict = await Service.findOne({ slug: service.slug, _id: { $ne: service._id } });
@@ -170,14 +181,50 @@ export const updateService = async (req, res) => {
       return res.status(400).json({ message: "A service with this title already exists. Please choose a different title." });
     }
 
-    if(req.file){
-        if(service.image){
-            await deleteFromCloudinary(service.image);
-        }
-        let folder = "services";
-        const image = await uploadToCloudinary([req.file], folder);
-        service.image = image[0].url;
+    if (req.files.file) {
+      if (service.image) {
+        await deleteFromCloudinary(service.image);
+      }
+      let folder = "services";
+      const image = await uploadToCloudinary(req.files.file, folder);
+      service.image = image[0].url;
     }
+
+    if (req.files.sliderImage) {
+      let folder = "services/slider";
+      const sliderImages = await uploadToCloudinary(req.files.sliderImage, folder);
+      const newSliderImages = sliderImages.map(img => img.url);
+
+      // Merge with existing slider images if provided
+      let existingSliderImages = [];
+      if (req.body.existingSliderImages) {
+        try {
+          existingSliderImages = JSON.parse(req.body.existingSliderImages);
+          const deletedImages = service.sliderImage.filter(img => !existingSliderImages.includes(img));
+          if (deletedImages.length > 0) {
+              await deleteFromCloudinary(deletedImages);
+          }
+        } catch (e) {
+          console.log("Error parsing existingSliderImages:", e);
+        }
+      }
+
+      service.sliderImage = [...existingSliderImages, ...newSliderImages];
+    }
+
+    if(!req.files.sliderImage ){
+      try{
+        let existingSliderImages = req.body.existingSliderImages ? JSON.parse(req.body.existingSliderImages) : [];
+        const deletedImages = service.sliderImage.filter(img => !existingSliderImages.includes(img));
+        if (deletedImages.length > 0) {
+            await deleteFromCloudinary(deletedImages);
+        }
+        service.sliderImage = existingSliderImages;
+      } catch(e){
+        console.log("Error parsing existingSliderImages:", e);
+      }
+    }
+
     await service.save();
     return res.status(200).json({
       message: "Service updated successfully",
@@ -200,6 +247,9 @@ export const deleteService = async (req, res) => {
     }
     if(service.image){
         await deleteFromCloudinary(service.image);
+    }
+    if(service.sliderImage && service.sliderImage.length > 0){
+        await deleteFromCloudinary(service.sliderImage);
     }
     await Service.findByIdAndDelete(id);
     return res.status(200).json({ message: "Service deleted successfully" });

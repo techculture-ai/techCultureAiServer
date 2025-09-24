@@ -113,14 +113,14 @@ export const updateProject = async (req, res) => {
             return res.status(404).json({message: "Project not found"});
         }
 
-        if(req.file){
-            if(project.image){
-                await deleteFromCloudinary([project.image]);
-            }
-            let folder = "Projects"
-            let file = req.file;
-            const url = await uploadToCloudinary([file], folder);
-            project.image = url[0].url;
+        if (req.files.file) {
+          if (project.image) {
+            await deleteFromCloudinary([project.image]);
+          }
+          let folder = "Projects";
+          let file = req.files.file;
+          const url = await uploadToCloudinary(file, folder);
+          project.image = url[0].url;
         }
 
         // Handle portfolio images upload
@@ -134,12 +134,34 @@ export const updateProject = async (req, res) => {
             if (req.body.existingPortfolioImages) {
                 try {
                     existingPortfolioUrls = JSON.parse(req.body.existingPortfolioImages);
+                    const deletedImages = project.portfolioImages.filter(img => !existingPortfolioUrls.includes(img));
+                    console.log("Deleted Images:", deletedImages);
+                    if (deletedImages.length > 0) {
+                        await deleteFromCloudinary(deletedImages);
+                    }
                 } catch (e) {
                     console.log("Error parsing existingPortfolioImages:", e);
                 }
             }
             
             project.portfolioImages = [...existingPortfolioUrls, ...newPortfolioUrls];
+        }
+        if(!req.files || !req.files.portfolioImages){
+            // If no new images are uploaded, check if existingPortfolioImages is provided to update the list
+            try {
+                let existingPortfolioUrls = req.body.existingPortfolioImages ? JSON.parse(req.body.existingPortfolioImages) : [];
+                const deletedImages = project.portfolioImages.filter(
+                  (img) => !existingPortfolioUrls.includes(img)
+                );
+                console.log("Deleted Images:", deletedImages);
+                if (deletedImages.length > 0) {
+                      await deleteFromCloudinary(deletedImages);
+                    }
+                    project.portfolioImages = existingPortfolioUrls;
+                } catch (e) {
+                    console.log("Error parsing existingPortfolioImages:", e);
+                }
+            
         }
 
         project.title = title;

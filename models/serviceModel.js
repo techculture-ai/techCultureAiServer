@@ -10,6 +10,9 @@ const serviceSchema = new mongoose.Schema({
   image: {
     type: String,
   },
+  sliderImage: [{
+    type: String,
+  }],
   features: [{ type: String }],
   category: {
     type: String,
@@ -27,6 +30,10 @@ const serviceSchema = new mongoose.Schema({
   order: {
     type: Number,
     default: 1,
+  },
+  showOnHeader:{
+    type: Boolean,
+    default: false,
   },
   createdAt: {
     type: Date,

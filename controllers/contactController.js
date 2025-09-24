@@ -2,9 +2,9 @@ import contactModel from "../models/contactModel.js";
 
 //create contact
 export const createContact = async (req, res) => {
-  const { name, email, phone, message, company, service } = req.body;
+  const { name, email, phone, message="NA", company="Individual", service } = req.body;
 
-  if(!name || !email || !phone || !message || !company || !service) {
+  if(!name || !email || !phone || !service) {
     return res.status(400).json({ error: "Please fill all the fields" });
   }
 
