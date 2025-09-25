@@ -107,7 +107,7 @@ export const adminloginUser = async (req, res) => {
         if (!isPasswordMatch) {
             return res.status(400).json({ message: "Invalid credentials" });
         }
-        const token = jwt.sign({user: {name: user.name, _id: user._id, role : user.role}}, process.env.JWT_SECRET, { expiresIn: '1d' });
+        const token = jwt.sign({user: {name: user.name, _id: user._id, role : user.role}}, process.env.JWT_SECRET);
         return res.status(200).json({
             message: "Login successful",
             token,
