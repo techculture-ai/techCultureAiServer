@@ -22,6 +22,7 @@ import technologyRouter from "./routes/technologiesRoutes.js"
 import cleanupRouter from "./routes/cleanupRoutes.js"
 import faqRouter from "./routes/faqRoutes.js"
 import subscriberRouter from "./routes/subscriberRoutes.js"
+import authRoutes from "./routes/authRoutes.js"
 
 const app = express()
 const PORT = process.env.PORT || 5000
@@ -36,11 +37,15 @@ app.use(
       "http://localhost:3001",
       "http://165.22.217.110:3001",
       "http://165.22.217.110:3000",
+      "http://localhost:3002",
+      "http://localhost:8000",
     ],
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization", "x-access-token"],
   })
 );
+app.set("trust proxy", true);
+
 app.use(express.json())
 app.use(express.json({ limit: "100mb" }));
 
@@ -52,6 +57,7 @@ app.get("/", (req, res) => {
   res.send("Welcome to Tech Culture API")
 })
 
+app.use("/auth", authRoutes);
 app.use("/api", dashboardRouter) 
 app.use("/api/users", userRouter)
 app.use("/api/employees", employeeRouter)
