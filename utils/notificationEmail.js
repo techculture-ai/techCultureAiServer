@@ -302,9 +302,8 @@ const adminNotificationEmailTemp = (
                         <p>Stay connected with the latest in technology</p>
                         
                         <div class="footer-links">
-                            <a href="#">Website</a> |
-                            <a href="#">Support</a> |
-                            <a href="#">Contact Us</a>
+                            <a href="https://techculture.ai/">Website</a> |
+                            <a href="https://techculture.ai/contact">Contact Us</a>
                         </div>
                         
                         <div class="timestamp">

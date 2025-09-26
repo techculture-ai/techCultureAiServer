@@ -12,7 +12,7 @@ const demoScheduleConfirmationEmailTemp = (userDetails) => {
     meetingId,
     demoNotes,
     hostName = "TechCulture Team",
-    hostEmail = "demo@techculture.com",
+    hostEmail = "marketing.techculture@gmail.com",
   } = userDetails;
 
   // Format date for better readability
@@ -34,14 +34,14 @@ const demoScheduleConfirmationEmailTemp = (userDetails) => {
     if (!timeString) return "Invalid Time";
     const [hours, minutes] = timeString.split(":");
     if (!hours || !minutes) return "Invalid Time";
-    
+
     const date = new Date();
     date.setHours(parseInt(hours), parseInt(minutes));
-    
+
     if (isNaN(date.getTime())) {
       return "Invalid Time";
     }
-    
+
     return date.toLocaleTimeString("en-US", {
       hour: "numeric",
       minute: "2-digit",
@@ -58,16 +58,19 @@ const demoScheduleConfirmationEmailTemp = (userDetails) => {
       }
 
       // Create a proper date string by combining date and time
-      const dateStr = demoDate instanceof Date ? demoDate.toISOString().split('T')[0] : demoDate;
+      const dateStr =
+        demoDate instanceof Date
+          ? demoDate.toISOString().split("T")[0]
+          : demoDate;
       const combinedDateTime = `${dateStr}T${demoTime}:00`;
-      
+
       const startDate = new Date(combinedDateTime);
-      
+
       // Check if the date is valid
       if (isNaN(startDate.getTime())) {
         return "#";
       }
-      
+
       const endDate = new Date(startDate.getTime() + 60 * 60 * 1000); // 1 hour later
 
       const formatCalendarDate = (date) => {
@@ -79,7 +82,7 @@ const demoScheduleConfirmationEmailTemp = (userDetails) => {
 
       const startFormatted = formatCalendarDate(startDate);
       const endFormatted = formatCalendarDate(endDate);
-      
+
       if (!startFormatted || !endFormatted) {
         return "#";
       }
@@ -93,7 +96,9 @@ const demoScheduleConfirmationEmailTemp = (userDetails) => {
         }`
       );
 
-      return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${startFormatted}/${endFormatted}&details=${details}&location=${encodeURIComponent(meetingLink)}`;
+      return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${startFormatted}/${endFormatted}&details=${details}&location=${encodeURIComponent(
+        meetingLink
+      )}`;
     } catch (error) {
       console.error("Error generating calendar link:", error);
       return "#";
@@ -391,15 +396,16 @@ const demoScheduleConfirmationEmailTemp = (userDetails) => {
                 
                 <div class="content">
                     <div class="greeting">
-                        Hi ${userName}! 👋
+                      Hello ${userName} 👋,
                     </div>
-                    
+
                     <p style="color: #4a5568; font-size: 16px; margin-bottom: 25px;">
-                        Great news! Your demo has been successfully scheduled. We're excited to show you what 
-                        TechCulture can do for ${
-                          companyName || "your business"
-                        }. Here are all the details:
+                      We’re delighted to let you know that your demo has been successfully scheduled.  
+                      Thank you for giving TechCulture the opportunity to demonstrate how we can support 
+                      "your business.  
+                      Here are the details:
                     </p>
+
                     
                     <div class="demo-details-card">
                         <h3>📅 Demo Details</h3>
@@ -535,7 +541,6 @@ const demoScheduleConfirmationEmailTemp = (userDetails) => {
         </html>
     `;
 };
-
 
 const adminDemoNotificationEmailTemp = (userDetails) => {
   const {
@@ -716,6 +721,5 @@ const adminDemoNotificationEmailTemp = (userDetails) => {
   </html>
   `;
 };
-
 
 export { demoScheduleConfirmationEmailTemp, adminDemoNotificationEmailTemp };
